@@ -29,7 +29,7 @@ class Pymill():
         self.post(url, params)
         s=buf.getvalue()
         buf.close()
-        return s
+        return json.loads(s)
 
     def getcard(self,token):
         return self.apicall("https://api.paymill.de/v1/creditcards",(("token", token),))
@@ -63,7 +63,7 @@ class Pymill():
     
 if __name__=="__main__":
     p=Pymill("YOURPRIVATEKEYHERE")
-    cc=json.loads(p.getcards())["data"][0]["id"]
+    cc=(p.getcards())["data"][0]["id"]
     print p.getcarddetails(cc)
     #print p.transact(amount=300,card=cc,description="pymilltest")
     
