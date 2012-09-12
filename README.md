@@ -9,7 +9,7 @@ Example of usage:
 	for i in p.getcards()["data"]:
 		print i["id"]
 	
-	card=p.newcard("token from Paymill bridge goes here") #store a credit card
+	card=p.newcard("token from Paymill bridge goes here")["data"] #store a credit card
 	print card
 	transaction=transact(230, card=card["id"])["data"] #Charge card with 2 Euros and 30 Cents
 	print transaction
