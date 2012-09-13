@@ -66,7 +66,7 @@ class Pymill():
         Create a credit card from a given token.
         token: string Unique credit card token
         
-        Returns: a dict representing a CC
+        Returns: a dict with a member "data" containing a dict representing a CC
         """
         return self._apicall("https://api.paymill.de/v1/creditcards",(("token", token),))
 
@@ -75,7 +75,7 @@ class Pymill():
         Get the details of a credit card from its id.
         cardid: string Unique id for the credit card
         
-        Returns: a dict representing a CC
+        Returns: a dict with a member "data" containing a dict representing a CC
         """
         return self._apicall("https://api.paymill.de/v1/creditcards/"+str(cardid))
     
@@ -94,7 +94,7 @@ class Pymill():
         Delete a stored CC
         cardid: Unique id for the CC to be deleted
         
-        Returns: a disct with an member "data" containing an empty array
+        Returns: a dict with an member "data" containing an empty array
         """
         return self._apicall("https://api.paymill.de/v1/creditcards/%s"%(str(cardid),),cr="DELETE")
         
@@ -144,7 +144,7 @@ class Pymill():
         """
         List all transactions.
         
-        Returns: an array of dicts with a member "data" which is an array of dicts, each representing a transaction
+        Returns: a dict with a member "data" which is an array of dicts, each representing a transaction
         """
         return self._apicall("https://api.paymill.de/v1/transactions/")
 
@@ -155,8 +155,10 @@ class Pymill():
         amount: The amount in cents that are to be refunded
         description: A description of the refund (optional)
         
-        Returns: a dict representing a refund, or None if the amount is 0
+        Returns: a dict with a member "data" which is a dict representing a refund, or None if the amount is 0
         """
+        if amount==0:
+            return None
         p=[("amount",str(amount))]
         if description is not None:
             p+=[("description",description)]
@@ -167,7 +169,7 @@ class Pymill():
         Get the details of a refund from its id.
         refid: string Unique id for the refund
         
-        Returns: a dict representing a refund
+        Returns: a dict with a member "data" which is a dict representing a refund
         """
         return self._apicall("https://api.paymill.de/v1/refunds/"+str(refid))
     
@@ -179,6 +181,70 @@ class Pymill():
         Returns: a dict with a member "data" which is an array of dicts, each representing a refund
         """
         return self._apicall("https://api.paymill.de/v1/refunds/")
+
+    """Client:
+    id: unique id for this client
+    email: client's email address (optional)
+    description: description of this client (optional)
+    created_at: unix timestamp identifying time of creation
+    updated_at: unix timestamp identifying time of last change
+    creditcard: cc object (optional)
+    subscription: subscription object (optional)
+    """
+
+    def newclient(email, description=None):
+        """
+        Creates a new client.
+        email: client's email address
+        description: description of this client (optional)
+    
+        Returns: a dict with a member "data" which is a dict representing a client.
+        """
+        p=[("email",str(email))]
+        if description is not None:
+            p+=[("description",description)]
+        return self._apicall("https://api.paymill.de/v1/clients",tuple(p))
+
+    def getclientdetails(self, cid):
+        """
+        Get the details of a client from its id.
+        cid: string Unique id for the client
+        
+        Returns: a dict with a member "data" which is a dict representing a client
+        """
+        return self._apicall("https://api.paymill.de/v1/clients/"+str(cid))
+    
+    def updateclient(self,cid, email, description=None):
+        """
+        Updates the details of a client.
+        cid: string Unique client id
+        email: The email of the client
+        description: A description of the client (optional)
+        
+        Returns: a dict with a member "data" which is a dict representing a client
+        """
+        p=[("email",str(email))]
+        if description is not None:
+            p+=[("description",description)]
+        return self._apicall("https://api.paymill.de/v1/clients/"+str(cid),tuple(p))
+
+    
+    def delclient(self, cid):
+        """
+        Delete a stored client
+        cid: Unique id for the client to be deleted
+        
+        Returns: a dict with an member "data" containing an empty array
+        """
+        return self._apicall("https://api.paymill.de/v1/clients/%s"%(str(cid),),cr="DELETE")
+    
+    def getclients(self):
+        """
+        List all stored clients.
+        
+        Returns: a dict with a member "data" which is an array of dicts, each representing a client
+        """
+        return self._apicall("https://api.paymill.de/v1/clients/")
 
     
     
