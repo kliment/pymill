@@ -44,7 +44,7 @@ class Pymill():
             self.c.setopt(self.c.POSTFIELDS,p)
         self.c.perform()
         
-    def _apicall(self,url,params=(),cr="GET"):
+    def _apicall(self,url,params=(),cr="GET",ch=None):
         """
         Call an API endpoint.
         url: The URL of the entity to post to.
@@ -53,12 +53,16 @@ class Pymill():
         
         Returns a dictionary object populated with the json returned.
         """
+        if ch is not None:
+            self.c.setopt(pycurl.HTTPHEADER,ch)
         self.c.setopt(pycurl.CUSTOMREQUEST, cr)
         buf=cStringIO.StringIO()
         self.c.setopt(self.c.WRITEFUNCTION, buf.write)
         self._post(url, params)
         s=buf.getvalue()
         buf.close()
+        if ch is not None:
+            return s
         return json.loads(s)
 
     def newcard(self,token):
@@ -246,6 +250,14 @@ class Pymill():
         """
         return self._apicall("https://api.paymill.de/v1/clients/")
 
+    def exportclients(self):
+        """
+        Export all stored clients in CSV form
+        
+        Returns: the contents of the CSV file
+        """
+        return self._apicall("https://api.paymill.de/v1/clients/",ch=["Accept":"text/csv"])
+        
     
     
 if __name__=="__main__":
