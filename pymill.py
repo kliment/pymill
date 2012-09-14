@@ -256,9 +256,78 @@ class Pymill():
         
         Returns: the contents of the CSV file
         """
-        return self._apicall("https://api.paymill.de/v1/clients/",ch=["Accept":"text/csv"])
+        return self._apicall("https://api.paymill.de/v1/clients/",ch=["Accept: text/csv"])
         
+    """Offer:
+    id: unique offer identifier
+    name: freely controllable offer name
+    amount: The amount, in EuroCENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode.
+    interval: "week", "month", or "year". The client will be charged every time the interval passes
+    trial_period_days: Number of days before the first charge. (optional)
+    """
     
+    def newoffer(self, amount, interval="month", currency="eur", name=None):
+        """
+        Creates a new offer
+        amount: The amount in cents that are to be charged every interval
+        interval: MUST be either "week", "month" or "year"
+        currency: Must be "eur" if given (optional)
+        name: A name for this offer
+        
+        Returns: a dict with a member "data" which is a dict representing 
+            an offer, or None if the amount is 0 or the interval is invalid
+        """
+        if amount==0:
+            return None
+        p=[("amount",str(amount))]
+        if interval not in ["week","month","year"]:
+            return None
+        p=[("amount",str(amount))]
+        if name is not None:
+            p+=[("name",name)]
+        return self._apicall("https://api.paymill.de/v1/offers",tuple(p))
+
+    def getofferdetails(self, oid):
+        """
+        Get the details of an offer from its id.
+        oid: string Unique id for the offer
+        
+        Returns: a dict with a member "data" which is a dict representing an offer
+        """
+        return self._apicall("https://api.paymill.de/v1/offers/"+str(oid))
+    
+    def updateoffer(self,oid, name):
+        """
+        Updates the details of an offer. Only the name may be changed
+        oid: string Unique offer id
+        name: The new name of the offer
+        
+        Returns: a dict with a member "data" which is a dict representing an offer
+        """
+        p=[("name",str(name))]
+        return self._apicall("https://api.paymill.de/v1/offers/"+str(oid),tuple(p))
+
+    
+    def deloffer(self, oid):
+        """
+        Delete a stored offer. May only be done if no subscriptions to this offer are active.
+        oid: Unique id for the offer to be deleted
+        
+        Returns: a dict with an member "data" containing an empty array
+        """
+        return self._apicall("https://api.paymill.de/v1/offers/%s"%(str(oid),),cr="DELETE")
+    
+    def getoffers(self):
+        """
+        List all stored offers.
+        
+        Returns: a dict with a member "data" which is an array of dicts, each representing an offer
+        """
+        return self._apicall("https://api.paymill.de/v1/offers/")
+
+    """Subscription:
+    
+    """
     
 if __name__=="__main__":
     p=Pymill("YOURPRIVATEKEYHERE")
