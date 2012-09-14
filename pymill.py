@@ -7,14 +7,37 @@ import pycurl, cStringIO, json
 
 class Pymill():
     """
-    CC object desc:
+    These are the parameters each object type contains
+    
+    Card:
     id: unique card ID
-    card_type: visa, mastercard, american express
+    card_type: visa, mastercard, (maybe one day american express)
     country: country the card was issued in
     expire_month: (2ch)
     expire_year: (4ch)
     card_holder: name of cardholder
     last4: last 4 digits of card
+    created_at: unixtime
+    updated_at: unixtime
+    
+    Transaction:
+    id: unique transaction ID
+    amount: amount charged in EuroCENTS
+    status: open, pending, closed or refunded
+    description: user-selected description of the transaction
+    livemode: true or false depending on whether the transaction is real or in test mode
+    creditcard: a card object (see above)
+    clients: if a preset client (see below) was used to make the transaction. Otherwise null
+    created_at: unixtime
+    updated_at: unixtime
+    
+    Refund:
+    id: unique refund ID
+    transaction: The unique transaction ID of the transaction being refunded
+    amount: amount refunded in EuroCENTS
+    status: open, pending or refunded
+    description: user-selected description of the refund
+    livemode: true or false depending on whether the transaction is real or in test mode
     created_at: unixtime
     updated_at: unixtime
     
@@ -282,7 +305,7 @@ class Pymill():
         p=[("amount",str(amount))]
         if interval not in ["week","month","year"]:
             return None
-        p=[("amount",str(amount))]
+        p+=[("interval",str(interval))]
         if name is not None:
             p+=[("name",name)]
         return self._apicall("https://api.paymill.de/v1/offers",tuple(p))
@@ -325,10 +348,60 @@ class Pymill():
         """
         return self._apicall("https://api.paymill.de/v1/offers/")
 
-    """Subscription:
+    def newsub(self, client, offer):
+        """
+        Subscribes a client to an offer
+        client: The id of the client
+        offer: The id of the offer
+        
+        Returns: a dict with a member "data" which is a dict representing a subscription
+        """
+        if amount==0:
+            return None
+        p=[("offer",str(offer)),("token",str(client))]
+        return self._apicall("https://api.paymill.de/v1/subscriptions",tuple(p))
+
+    def getsubdetails(self, sid):
+        """
+        Get the details of a subscription from its id.
+        sid: string Unique id for the subscription
+        
+        Returns: a dict with a member "data" which is a dict representing a subscription
+        """
+        return self._apicall("https://api.paymill.de/v1/subscriptions/"+str(sid))
     
-    """
+    def cancelsubafter(self,sid, cancel=True):
+        """
+        Cancels a subscription after its interval ends
+        sid: string Unique subscription id
+        cancel: If True, the subscription will be cancelled at the end of its interval. Set to False to undo.
+        
+        Returns: a dict with a member "data" which is a dict representing a subscription
+        """
+        if cancel:
+            p=[("cancel_at_period_end","true")]
+        else:
+            p=[("cancel_at_period_end","false")]
+        return self._apicall("https://api.paymill.de/v1/subscriptions/"+str(sid),tuple(p))
+
     
+    def cancelsubnow(self, sid):
+        """
+        Cancel a subscription immediately. Pending transactions will still be charged.
+        sid: Unique subscription id
+        
+        Returns: a dict with an member "data"
+        """
+        return self._apicall("https://api.paymill.de/v1/subscriptions/%s"%(str(sid),),cr="DELETE")
+    
+    def getsubs(self):
+        """
+        List all stored subscriptions.
+        
+        Returns: a dict with a member "data" which is an array of dicts, each representing a subscription
+        """
+        return self._apicall("https://api.paymill.de/v1/subscriptions/")
+
 if __name__=="__main__":
     p=Pymill("YOURPRIVATEKEYHERE")
     cc=(p.getcards())["data"][0]["id"]
