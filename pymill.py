@@ -17,6 +17,22 @@ class Pymill():
     last4: last 4 digits of card
     created_at: unixtime
     updated_at: unixtime
+    
+    Client:
+    id: unique id for this client
+    email: client's email address (optional)
+    description: description of this client (optional)
+    created_at: unix timestamp identifying time of creation
+    updated_at: unix timestamp identifying time of last change
+    creditcard: cc object (optional)
+    subscription: subscription object (optional)
+
+    Offer:
+    id: unique offer identifier
+    name: freely controllable offer name
+    amount: The amount, in EuroCENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode.
+    interval: "week", "month", or "year". The client will be charged every time the interval passes
+    trial_period_days: Number of days before the first charge. (optional)
     """
     
     def __init__(self, privatekey):
@@ -186,16 +202,7 @@ class Pymill():
         """
         return self._apicall("https://api.paymill.de/v1/refunds/")
 
-    """Client:
-    id: unique id for this client
-    email: client's email address (optional)
-    description: description of this client (optional)
-    created_at: unix timestamp identifying time of creation
-    updated_at: unix timestamp identifying time of last change
-    creditcard: cc object (optional)
-    subscription: subscription object (optional)
-    """
-
+    
     def newclient(email, description=None):
         """
         Creates a new client.
@@ -258,13 +265,6 @@ class Pymill():
         """
         return self._apicall("https://api.paymill.de/v1/clients/",ch=["Accept: text/csv"])
         
-    """Offer:
-    id: unique offer identifier
-    name: freely controllable offer name
-    amount: The amount, in EuroCENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode.
-    interval: "week", "month", or "year". The client will be charged every time the interval passes
-    trial_period_days: Number of days before the first charge. (optional)
-    """
     
     def newoffer(self, amount, interval="month", currency="eur", name=None):
         """
