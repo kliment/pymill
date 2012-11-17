@@ -11,5 +11,5 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
-    requires=['pycurl2']
+    install_requires=['pycurl2']
 )
