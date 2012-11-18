@@ -70,7 +70,7 @@ class Pymill():
         self.c.setopt(pycurl.USERPWD, '%s:' % (privatekey,))
         self.bridge = "https://api.paymill.de/v2/"
 
-    def _post(self, url, params=()):
+    def _post(self, url, params=(), cr='GET'):
         """
         Posts a request with parameters to a given url
         url: The URL of the entity to post to.
@@ -82,8 +82,13 @@ class Pymill():
         if params is not ():
             p = str("&".join([i[0] + "=" + i[1] for i in params]))
             print p
-            self.c.setopt(pycurl.CUSTOMREQUEST, "POST")
+            if cr == 'GET':
+                self.c.setopt(pycurl.CUSTOMREQUEST, "POST")
+            else:
+                self.c.setopt(pycurl.CUSTOMREQUEST, cr)
             self.c.setopt(self.c.POSTFIELDS, p)
+        else:
+            self.c.setopt(pycurl.CUSTOMREQUEST, cr)
         self.c.perform()
 
     def _apicall(self, url, params=(), cr="GET", ch=None):
@@ -97,10 +102,9 @@ class Pymill():
         """
         if ch is not None:
             self.c.setopt(pycurl.HTTPHEADER, ch)
-        self.c.setopt(pycurl.CUSTOMREQUEST, cr)
         buf = cStringIO.StringIO()
         self.c.setopt(self.c.WRITEFUNCTION, buf.write)
-        self._post(url, params)
+        self._post(url, params, cr=cr)
         s = buf.getvalue()
         buf.close()
         if ch is not None:
@@ -179,7 +183,7 @@ class Pymill():
 
         Returns: a dict representing a transaction
         """
-        return self._apicall(self.bridge + "transactions/" + str(cardid))
+        return self._apicall(self.bridge + "transactions/" + str(tranid))
 
     def gettrans(self):
         """
@@ -256,7 +260,7 @@ class Pymill():
         p = [("email", str(email))]
         if description is not None:
             p += [("description", description)]
-        return self._apicall(self.bridge + "client/" + str(cid), tuple(p))
+        return self._apicall(self.bridge + "clients/" + str(cid), tuple(p), cr='PUT')
 
     def delclient(self, cid):
         """
@@ -349,8 +353,6 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
-        if amount == 0:
-            return None
         p = [("offer", str(offer)), ("token", str(client))]
         return self._apicall(self.bridge + "subscriptions", tuple(p))
 
