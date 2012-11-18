@@ -127,7 +127,7 @@ class Pymill():
 
         Returns: a dict with a member "data" containing a dict representing a CC
         """
-        return self._apicall(self.bridge + "payments" + str(cardid))
+        return self._apicall(self.bridge + "payments/" + str(cardid), cr='GET')
 
     def getcards(self):
         """
