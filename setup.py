@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
     name='pymill',
-    version='0.1',
+    version='0.1.1',
     description='Python API for Paymill credit card processing service',
     packages=['pymill'],
     classifiers=[

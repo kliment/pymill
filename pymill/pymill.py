@@ -256,7 +256,7 @@ class Pymill():
         p = [("email", str(email))]
         if description is not None:
             p += [("description", description)]
-        return self._apicall(self.bridge + "clients/" + str(cid), tuple(p))
+        return self._apicall(self.bridge + "client/" + str(cid), tuple(p))
 
     def delclient(self, cid):
         """
