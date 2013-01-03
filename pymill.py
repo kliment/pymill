@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #pymill.py
 
-import requests, json
+import requests
 
 class Pymill():
     """
