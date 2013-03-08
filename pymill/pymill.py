@@ -451,8 +451,6 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
-        if amount == 0:
-            return None
         p = [("offer", str(offer)), ("client", str(client)), (
             "payment", str(payment))]
         return self._apicall("https://api.paymill.de/v2/subscriptions", tuple(p))
