@@ -85,6 +85,11 @@ class Pymill():
     interval: "week", "month", or "year". The client will be charged every time the interval passes
     clients: array of client objects
 
+    Webhook:
+    id: unique identifier of this webhook
+    url: the url of the webhook
+    livemode: boolean. you can create webhook for live or test mode
+    event_types: array of event_types
 
     """
 
@@ -144,7 +149,7 @@ class Pymill():
                 "account", account), ("holder", holder), ("type", "debit")]
         if client is not None:
             p += [("client", client)]
-        return self._apicall("https://api.paymill.de/v2/payments/", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/payments/", tuple(p))
 
     def newcard(self, token, client=None):
         """
@@ -154,7 +159,10 @@ class Pymill():
 
         Returns: a dict with a member "data" containing a dict representing a CC
         """
-        return self._apicall("https://api.paymill.de/v2/payments", (("token", token),))
+        p = [('token', token)]
+        if client is not None:
+            p += [("client", client)]
+        return self._apicall("https://api.paymill.com/v2/payments", tuple(p))
 
     def getcarddetails(self, cardid):
         """
@@ -163,7 +171,7 @@ class Pymill():
 
         Returns: a dict with a member "data" containing a dict representing a CC
         """
-        return self._apicall("https://api.paymill.de/v2/payments/" + str(cardid))
+        return self._apicall("https://api.paymill.com/v2/payments/" + str(cardid))
 
     def getcards(self):
         """
@@ -171,7 +179,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a CC or debit card
         """
-        return self._apicall("https://api.paymill.de/v2/payments/")
+        return self._apicall("https://api.paymill.com/v2/payments/")
 
     def delcard(self, cardid):
         """
@@ -180,7 +188,7 @@ class Pymill():
 
         Returns: a dict with an member "data" containing an empty array
         """
-        return self._apicall("https://api.paymill.de/v2/payments/%s" % (str(cardid),), cr="DELETE")
+        return self._apicall("https://api.paymill.com/v2/payments/%s" % (str(cardid),), cr="DELETE")
 
     def transact(self, amount=0, currency="eur", description=None, token=None, client=None, payment=None, preauth=None, code=None, account=None, holder=None):
         """
@@ -222,7 +230,7 @@ class Pymill():
             p += [("description", description)]
         p += [("amount", str(amount))]
         p += [("currency", currency)]
-        return self._apicall("https://api.paymill.de/v2/transactions/", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/transactions/", tuple(p))
 
     def gettransdetails(self, tranid):
         """
@@ -231,7 +239,7 @@ class Pymill():
 
         Returns: a dict representing a transaction
         """
-        return self._apicall("https://api.paymill.de/v2/transactions/" + str(tranid))
+        return self._apicall("https://api.paymill.com/v2/transactions/" + str(tranid))
 
     def gettrans(self):
         """
@@ -239,7 +247,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a transaction
         """
-        return self._apicall("https://api.paymill.de/v2/transactions/")
+        return self._apicall("https://api.paymill.com/v2/transactions/")
 
     def refund(self, tranid, amount, description=None):
         """
@@ -255,7 +263,7 @@ class Pymill():
         p = [("amount", str(amount))]
         if description is not None:
             p += [("description", description)]
-        return self._apicall("https://api.paymill.de/v2/refunds/" + str(tranid), tuple(p))
+        return self._apicall("https://api.paymill.com/v2/refunds/" + str(tranid), tuple(p))
 
     def getrefdetails(self, refid):
         """
@@ -264,7 +272,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a refund
         """
-        return self._apicall("https://api.paymill.de/v2/refunds/" + str(refid))
+        return self._apicall("https://api.paymill.com/v2/refunds/" + str(refid))
 
     def getrefs(self):
         """
@@ -272,7 +280,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a refund
         """
-        return self._apicall("https://api.paymill.de/v2/refunds/")
+        return self._apicall("https://api.paymill.com/v2/refunds/")
 
     def preauth(self, amount=0, currency="eur", description=None, token=None, client=None, payment=None):
         """
@@ -296,7 +304,7 @@ class Pymill():
             return None
         p += [("amount", str(amount))]
         p += [("currency", currency)]
-        return self._apicall("https://api.paymill.de/v2/preauthorizations/", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/preauthorizations/", tuple(p))
 
     def getpreauthdetails(self, preid):
         """
@@ -305,7 +313,7 @@ class Pymill():
 
         Returns: a dict representing a preauthorization
         """
-        return self._apicall("https://api.paymill.de/v2/preauthorizations/" + str(preid))
+        return self._apicall("https://api.paymill.com/v2/preauthorizations/" + str(preid))
 
     def getpreauth(self):
         """
@@ -313,7 +321,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a preauthorization
         """
-        return self._apicall("https://api.paymill.de/v2/preauthorizations/")
+        return self._apicall("https://api.paymill.com/v2/preauthorizations/")
 
     def newclient(self, email=None, description=None):
         """
@@ -330,7 +338,7 @@ class Pymill():
             p += [("email", str(email))]
         if p is []:
             return None
-        return self._apicall("https://api.paymill.de/v2/clients", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/clients", tuple(p))
 
     def getclientdetails(self, cid):
         """
@@ -339,7 +347,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a client
         """
-        return self._apicall("https://api.paymill.de/v2/clients/" + str(cid))
+        return self._apicall("https://api.paymill.com/v2/clients/" + str(cid))
 
     def updateclient(self, cid, email, description=None):
         """
@@ -357,7 +365,7 @@ class Pymill():
             p += [("email", str(email))]
         if p is []:
             return None
-        return self._apicall("https://api.paymill.de/v2/clients/" + str(cid), tuple(p), cr="PUT")
+        return self._apicall("https://api.paymill.com/v2/clients/" + str(cid), tuple(p), cr="PUT")
 
     def delclient(self, cid):
         """
@@ -366,7 +374,7 @@ class Pymill():
 
         Returns: a dict with an member "data" containing an empty array
         """
-        return self._apicall("https://api.paymill.de/v2/clients/%s" % (str(cid),), cr="DELETE")
+        return self._apicall("https://api.paymill.com/v2/clients/%s" % (str(cid),), cr="DELETE")
 
     def getclients(self):
         """
@@ -374,7 +382,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a client
         """
-        return self._apicall("https://api.paymill.de/v2/clients/")
+        return self._apicall("https://api.paymill.com/v2/clients/")
 
     def exportclients(self):
         """
@@ -382,7 +390,7 @@ class Pymill():
 
         Returns: the contents of the CSV file
         """
-        return self._apicall("https://api.paymill.de/v2/clients/", ch={"Accept": "text/csv"})
+        return self._apicall("https://api.paymill.com/v2/clients/", ch={"Accept": "text/csv"})
 
     def newoffer(self, amount, interval="month", currency="eur", name=None):
         """
@@ -403,7 +411,7 @@ class Pymill():
         p += [("interval", str(interval))]
         if name is not None:
             p += [("name", name)]
-        return self._apicall("https://api.paymill.de/v2/offers", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/offers", tuple(p))
 
     def getofferdetails(self, oid):
         """
@@ -412,7 +420,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing an offer
         """
-        return self._apicall("https://api.paymill.de/v2/offers/" + str(oid))
+        return self._apicall("https://api.paymill.com/v2/offers/" + str(oid))
 
     def updateoffer(self, oid, name):
         """
@@ -423,7 +431,7 @@ class Pymill():
         Returns: a dict with a member "data" which is a dict representing an offer
         """
         p = [("name", str(name))]
-        return self._apicall("https://api.paymill.de/v2/offers/" + str(oid), tuple(p))
+        return self._apicall("https://api.paymill.com/v2/offers/" + str(oid), tuple(p))
 
     def deloffer(self, oid):
         """
@@ -432,7 +440,7 @@ class Pymill():
 
         Returns: a dict with an member "data" containing an empty array
         """
-        return self._apicall("https://api.paymill.de/v2/offers/%s" % (str(oid),), cr="DELETE")
+        return self._apicall("https://api.paymill.com/v2/offers/%s" % (str(oid),), cr="DELETE")
 
     def getoffers(self):
         """
@@ -440,7 +448,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing an offer
         """
-        return self._apicall("https://api.paymill.de/v2/offers/")
+        return self._apicall("https://api.paymill.com/v2/offers/")
 
     def newsub(self, client, offer, payment):
         """
@@ -451,11 +459,9 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
-        if amount == 0:
-            return None
         p = [("offer", str(offer)), ("client", str(client)), (
             "payment", str(payment))]
-        return self._apicall("https://api.paymill.de/v2/subscriptions", tuple(p))
+        return self._apicall("https://api.paymill.com/v2/subscriptions", tuple(p))
 
     def getsubdetails(self, sid):
         """
@@ -464,7 +470,7 @@ class Pymill():
 
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
-        return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid))
+        return self._apicall("https://api.paymill.com/v2/subscriptions/" + str(sid))
 
     def cancelsubafter(self, sid, cancel=True):
         """
@@ -478,7 +484,7 @@ class Pymill():
             p = [("cancel_at_period_end", "true")]
         else:
             p = [("cancel_at_period_end", "false")]
-        return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
+        return self._apicall("https://api.paymill.com/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
 
     def cancelsubnow(self, sid):
         """
@@ -487,7 +493,7 @@ class Pymill():
 
         Returns: a dict with an member "data"
         """
-        return self._apicall("https://api.paymill.de/v2/subscriptions/%s" % (str(sid),), cr="DELETE")
+        return self._apicall("https://api.paymill.com/v2/subscriptions/%s" % (str(sid),), cr="DELETE")
 
     def getsubs(self):
         """
@@ -495,7 +501,41 @@ class Pymill():
 
         Returns: a dict with a member "data" which is an array of dicts, each representing a subscription
         """
-        return self._apicall("https://api.paymill.de/v2/subscriptions/")
+        return self._apicall("https://api.paymill.com/v2/subscriptions/")
+
+    def newhook(self, url, event_types):
+        """
+        Create a webhook to react to an event
+        url: the url for paymill server to Call
+        event_type: array. The event type to react to. exemple : ['subscription.deleted','subscription.failed']
+
+        return: a dict containing the webhook description
+        """
+        data = {
+            'url':url,
+            'event_types':event_types
+        }
+        return self._apicall("https://api.paymill.com/v2/webhooks", data)
+
+    def delhook(self, id):
+        """
+        Delete a webhook.
+        """
+        return self._apicall("https://api.paymill.com/v2/webhooks/%s" % (str(id),), cr="DELETE")
+
+    def gethook(self, id):
+        """
+        Get the details of a webhook.
+        """
+        return self._apicall("https://api.paymill.com/v2/webhooks/%s" % (str(id),))
+
+    def listhooks(self):
+        """
+        List all webhooks.
+
+        Returns: a dict
+        """
+        return self._apicall("https://api.paymill.com/v2/webhooks/")
 
 if __name__ == "__main__":
     p = Pymill("YOURPRIVATEKEYHERE")
