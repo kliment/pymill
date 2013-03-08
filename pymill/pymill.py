@@ -401,6 +401,7 @@ class Pymill():
         if interval not in ["week", "month", "year"]:
             return None
         p += [("interval", str(interval))]
+        p += [("currency", str(currency))]
         if name is not None:
             p += [("name", name)]
         return self._apicall("https://api.paymill.de/v2/offers", tuple(p))
