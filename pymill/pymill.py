@@ -389,7 +389,7 @@ class Pymill():
         Creates a new offer
         amount: The amount in cents that are to be charged every interval
         interval: MUST be either "week", "month" or "year"
-        currency: Must be "eur" if given (optional)
+        currency: "eur" by default (optional)
         name: A name for this offer
 
         Returns: a dict with a member "data" which is a dict representing
@@ -400,6 +400,7 @@ class Pymill():
         p = [("amount", str(amount))]
         if interval not in ["week", "month", "year"]:
             return None
+        p += [("currency", str(currency))]
         p += [("interval", str(interval))]
         if name is not None:
             p += [("name", name)]
@@ -502,4 +503,4 @@ if __name__ == "__main__":
     cc = (p.getcards())["data"][0]["id"]
     print p.getcarddetails(cc)
     #print p.transact(amount=300,code="86055500",account="1234512345",holder="Max Mustermann",description="debittest")
-    #print p.transact(amount=300,card=cc,description="pymilltest")
+    #print p.transact(amount=300,payment=cc,description="pymilltest")
