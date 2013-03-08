@@ -389,11 +389,11 @@ class Pymill():
         Creates a new offer
         amount: The amount in cents that are to be charged every interval
         interval: MUST be either "week", "month" or "year"
-        currency: Must be "eur" if given (optional)
+        currency: Must be an ISO_4217 formatted currency
         name: A name for this offer
 
         Returns: a dict with a member "data" which is a dict representing
-            an offer, or None if the amount is 0 or the interval is invalid
+            an offer, or None if the amount is 0 or the interval or currency is invalid
         """
         if amount == 0:
             return None
