@@ -154,7 +154,11 @@ class Pymill():
 
         Returns: a dict with a member "data" containing a dict representing a CC
         """
-        return self._apicall("https://api.paymill.de/v2/payments", (("token", token),))
+        p = [("token", token)]
+        if client is not None:
+            p += [("client", client)]
+
+        return self._apicall("https://api.paymill.de/v2/payments", tuple(p))
 
     def getcarddetails(self, cardid):
         """
@@ -464,6 +468,17 @@ class Pymill():
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
         return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid))
+
+    def updatesub(self, sid, offer):
+        """
+        Change the offer that a subscription is attached to
+        sid: string Unique id for the subscription
+        offer: string The id of the new offer
+
+        Returns: a dict with a member "data" which represents the subscription
+        """
+        p = [("offer", offer)]
+        return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
 
     def cancelsubafter(self, sid, cancel=True):
         """
