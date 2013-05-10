@@ -154,11 +154,9 @@ class Pymill():
 
         Returns: a dict with a member "data" containing a dict representing a CC
         """
-        p = []
+        p = [("token", token)]
         if client is not None:
             p += [("client", client)]
-        p += [("token", token)]
-
         return self._apicall("https://api.paymill.de/v2/payments", tuple(p))
 
     def getcarddetails(self, cardid):
