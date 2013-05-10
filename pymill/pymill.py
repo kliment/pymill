@@ -158,6 +158,7 @@ class Pymill():
         if client is not None:
             p += [("client", client)]
         p += [("token", token)]
+
         return self._apicall("https://api.paymill.de/v2/payments", tuple(p))
 
     def getcarddetails(self, cardid):
@@ -393,11 +394,11 @@ class Pymill():
         Creates a new offer
         amount: The amount in cents that are to be charged every interval
         interval: MUST be either "week", "month" or "year"
-        currency: "eur" by default (optional)
+        currency: Must be an ISO_4217 formatted currency, "EUR" by default
         name: A name for this offer
 
         Returns: a dict with a member "data" which is a dict representing
-            an offer, or None if the amount is 0 or the interval is invalid
+            an offer, or None if the amount is 0 or the interval or currency is invalid
         """
         if amount == 0:
             return None
@@ -406,6 +407,7 @@ class Pymill():
             return None
         p += [("currency", str(currency))]
         p += [("interval", str(interval))]
+        p += [("currency", str(currency))]
         if name is not None:
             p += [("name", name)]
         return self._apicall("https://api.paymill.de/v2/offers", tuple(p))
@@ -468,6 +470,17 @@ class Pymill():
         Returns: a dict with a member "data" which is a dict representing a subscription
         """
         return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid))
+
+    def updatesub(self, sid, offer):
+        """
+        Change the offer that a subscription is attached to
+        sid: string Unique id for the subscription
+        offer: string The id of the new offer
+
+        Returns: a dict with a member "data" which represents the subscription
+        """
+        p = [("offer", offer)]
+        return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
 
     def cancelsubafter(self, sid, cancel=True):
         """
