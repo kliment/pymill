@@ -4,7 +4,7 @@
 Welcome to pymill's documentation!
 ==================================
 
-.. autoclass:: pymill.Pymill
+.. automodule:: pymill.pymill
    :members:
    :undoc-members:
 
