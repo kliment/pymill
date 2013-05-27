@@ -1,556 +1,719 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-#pymill.py
 
+
+import logging
 import requests
 
 
-class Pymill():
-    """
-    These are the parameters each object type contains
+logger = logging.getLogger(__name__)
 
-    Payment:
-    id: unique payment method ID
-    type: creditcard or debit
-    client: id of associatied client (optional)
-    created_at: unixtime
-    updated_at: unixtime
-    (For credit cards only)
-    card_type: visa, mastercard, (maybe one day american express)
-    country: country the card was issued in
-    expire_month: (2ch)
-    expire_year: (4ch)
-    card_holder: name of cardholder
-    last4: last 4 digits of card
-    (For debit accounts only)
-    code: the sorting code of the bank
-    account: a partially masked account number
-    holder: name of the account holder
 
-    Preauthorization:
-    id: unique preauthorization ID
-    amount: amount preauthorized in CENTS
-    status: open, pending, closed, failed, deleted, or preauth
-    livemode: true or false depending on whether the transaction is real or in test mode
-    payment: a credit card payment method object (see above)
-    client: if a preset client (see below) was used to make the transaction. Otherwise null
-    created_at: unixtime
-    updated_at: unixtime
+class PaymillObject(object):
+    """ABC for all Paymill data objects"""
 
-    Transaction:
-    id: unique transaction ID
-    amount: amount charged in CENTS
-    status: open, pending, closed, failed, partial_refunded, refunded, or preauthorize (closed means success)
-    description: user-selected description of the transaction
-    livemode: true or false depending on whether the transaction is real or in test mode
-    payment: a payment method object (see above)
-    preauthorization: the preauthorization associated with this transaction (optional)
-    created_at: unixtime
-    updated_at: unixtime
+    @classmethod
+    def _check_field(cls, field_name):
+        if not field_name in dir(cls):
+            logger.debug("New/undocumented field '%s'", field_name)
 
-    Refund:
-    id: unique refund ID
-    transaction: The unique transaction ID of the transaction being refunded
-    amount: amount refunded in CENTS
-    status: open, pending or refunded
-    description: user-selected description of the refund
-    livemode: true or false depending on whether the transaction is real or in test mode
-    created_at: unixtime
-    updated_at: unixtime
+    def __init__(self, *args, **kwargs):
+        for key, value in kwargs.iteritems():
+            self._check_field(key)
+            setattr(self, key, value)
 
-    Client:
-    id: unique id for this client
-    email: client's email address (optional)
-    description: description of this client (optional)
-    created_at: unix timestamp identifying time of creation
-    updated_at: unix timestamp identifying time of last change
-    payment: list of cc or debit objects
-    subscription: subscription object (optional)
+    def __str__(self):
+        if hasattr(self, 'id'):
+            return self.id
+        return super(PaymillObject, self).__str__()
+    
 
-    Offer:
-    id: unique offer identifier
-    name: freely controllable offer name
-    amount: The amount, in CENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode.
-    interval: "week", "month", or "year". The client will be charged every time the interval passes
-    trial_period_days: Number of days before the first charge. (optional)
+class Payment(PaymillObject):
+    id = None
+    """unique payment method ID"""
 
-    Subscription:
-    id: unique subscription identifier
-    offer: unique offer identifier
-    livemode: true or false depending on whether the transaction is real or in test mode
-    cancel_at_period_end: true if subscription is to be cancelled at the end of current period, false if to be cancelled immediately
-    created_at: unix timestamp identifying time of creation
-    updated_at: unix timestamp identifying time of last change
-    canceled_at: unix timestamp identifying time of cancellation(optional)
-    interval: "week", "month", or "year". The client will be charged every time the interval passes
-    clients: array of client objects
+    type = None
+    """creditcard or debit"""
 
-    Webhook:
-    id: unique identifier of this webhook
-    url: the url of the webhook
-    livemode: boolean. you can create webhook for live or test mode
-    event_types: array of event_types
+    client = None
+    """id of associatied client (optional)"""
 
-    """
+    card_type = None
+    """visa or mastercard (for credit cards only)"""
+
+    country = None
+    """country the card was issued in (For credit cards only)"""
+
+    expire_month = None
+    """2 digits (For credit cards only)"""
+
+    expire_year = None
+    """4 digitis (For credit cards only)"""
+
+    card_holder = None
+    """name of cardholder (For credit cards only)"""
+
+    last4 = None
+    """last 4 digits of card (For credit cards only)"""
+
+    code = None
+    """the sorting code of the bank (For debit accounts only)"""
+
+    account = None
+    """a partially masked account number (For debit accounts only)"""
+
+    holder = None
+    """name of the account holder (For debit accounts only)"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Preauthorization(PaymillObject):
+    id = None
+    """unique preauthorization ID"""
+
+    amount = None
+    """amount preauthorized in CENTS"""
+
+    status = None
+    """open, pending, closed, failed, deleted, or preauth"""
+
+    livemode = None
+    """true or false depending on whether the transaction is real or in test mode"""
+
+    payment = None
+    """a credit card payment method object (see above)"""
+
+    client = None
+    """if a preset client (see below) was used to make the transaction. Otherwise null"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Transaction(PaymillObject):
+    id = None
+    """unique transaction ID"""
+
+    amount = None
+    """amount charged in CENTS"""
+
+    status = None
+    """open, pending, closed, failed, partial_refunded, refunded, or preauthorize (closed means success)"""
+
+    description = None
+    """user-selected description of the transaction"""
+
+    livemode = None
+    """true or false depending on whether the transaction is real or in test mode"""
+
+    payment = None
+    """a payment method object (see above)"""
+
+    preauthorization = None
+    """the preauthorization associated with this transaction (optional)"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Refund(PaymillObject):
+    id = None
+    """unique refund ID"""
+
+    transaction = None
+    """The unique transaction ID of the transaction being refunded"""
+
+    amount = None
+    """amount refunded in CENTS"""
+
+    status = None
+    """open, pending or refunded"""
+
+    description = None
+    """user-selected description of the refund"""
+
+    livemode = None
+    """true or false depending on whether the transaction is real or in test mode"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Client(PaymillObject):
+    id = None
+    """unique id for this client"""
+
+    email = None
+    """client's email address (optional)"""
+
+    description = None
+    """description of this client (optional)"""
+
+    payment = None
+    """list of cc or debit objects"""
+
+    subscription = None
+    """subscription object (optional)"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Offer(PaymillObject):
+    id = None
+    """unique offer identifier"""
+
+    name = None
+    """freely controllable offer name"""
+
+    amount = None
+    """The amount, in CENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode."""
+
+    interval = None
+    """"week", "month", or "year". The client will be charged every time the interval passes"""
+
+    trial_period_days = None
+    """Number of days before the first charge. (optional)"""
+
+
+class Subscription(PaymillObject):
+    id = None
+    """unique subscription identifier"""
+
+    offer = None
+    """unique offer identifier"""
+
+    livemode = None
+    """true or false depending on whether the transaction is real or in test mode"""
+
+    cancel_at_period_end = None
+    """true if subscription is to be cancelled at the end of current period, false if to be cancelled immediately"""
+
+    canceled_at = None
+    """unix timestamp identifying time of cancellation(optional)"""
+
+    interval = None
+    """ "week", "month", or "year". The client will be charged every time the interval passes"""
+
+    clients = None
+    """array of client objects"""
+
+    created_at = None
+    """unix timestamp identifying time of creation"""
+    
+    updated_at = None
+    """unix timestamp identifying time of last change"""
+
+
+class Webhook(PaymillObject):
+    id = None
+    """unique identifier of this webhook"""
+
+    url = None
+    """the url of the webhook"""
+
+    livemode = None
+    """boolean. you can create webhook for live or test mode"""
+
+    event_types = None
+    """array of event_types"""
+
+
+def dict_without_none(**kwargs):
+    """Creates a dictionary without the keys associated with None"""
+    
+    result = {}
+    for key, value in kwargs.iteritems():
+        if value in (None, str(None), ''):
+            continue
+        result[key] = value
+    return result
+
+
+class Pymill(object):
+    """Central entrance point to the Paymill API"""
 
     def __init__(self, privatekey):
-        """
-        Initialize a new paymill interface connection. Requires a private key.
-        """
-        self.s = requests.Session()
-        self.s.auth = (privatekey, "")
-        self.s.verify = False
-        #self.s.cert="cacert.pem"
+        """Initialize a new paymill interface connection. Requires a private key."""
+        self.session = requests.Session()
+        self.session.auth = (privatekey, "")
+        self.session.verify = False
 
-    def _apicall(self, url, params=(), cr="GET", ch=None):
-        """
-        Call an API endpoint.
-        url: The URL of the entity to post to.
-        params: a tuple of (name, value) tuples of parameters
-        cr: The request type to be made. If parameters are passed, this will be ignored and treated as POST
+    def _api_call(self, url, params={}, method="GET", headers=None, parse_json=True, return_type=None):
+        """Call an API method.
 
-        Returns a dictionary object populated with the json returned.
+        :Parameters:
+         - `url` - The URL of the entity to post to.
+         - `params` - a dictionary of parameters
+         - `method` - The request type to be made. If parameters are passed, this will be ignored and treated as POST
+         - `headers` - HTTP headers to be added to the request
+
+        :Returns:
+            a dictionary object populated with the json returned.
         """
-        pars = dict(params)
-        rf = None
-        if(cr == "GET"):
-            rf = self.s.get
-        elif cr == "DELETE":
-            rf = self.s.delete
-        elif cr == "PUT":
-            rf = self.s.put
+        request = {'GET': self.session.get, 'DELETE': self.session.delete, 'PUT': self.session.put, 'POST': self.session.post}[method]
+        if len(params) > 0 and not method in ('DELETE', 'PUT'):
+            request = self.session.post
+        response = request(url, params=params, headers=headers)
+
+        if parse_json:
+            if return_type is None:
+                return response.json()
+            else:
+                json_data = response.json()
+                if 'data' in json_data:
+                    if isinstance(json_data['data'], dict):
+                        return return_type(**json_data['data'])
+                    else:
+                        return [return_type(**x) for x in json_data['data']]
+                else:
+                    raise Exception(json_data)
         else:
-            rf = self.s.post
-        if params is not () and cr != "DELETE"and cr != "PUT":
-            rf = self.s.post
-        r = None
-        if(ch):
-            r = rf(url, params=pars, headers=ch)
-        else:
-            r = rf(url, params=pars)
-        if ch is not None:
-            return r.text
-        return r.json()
+            return response.text
 
-    def newdebit(self, code, account, holder, client=None):
+    def new_debit_card(self, code, account, holder, client=None):
+        """Create a debit card from account data.
+
+        :Parameters:
+         - `code` - A bank sorting code
+         - `account` - The account number
+         - `holder` - The name of the account holder
+         - `client` - A client id number (optional)
+
+        :Returns:
+            a dict with a member "data" containing a dict representing a debit card
         """
-        Create a debit card from account data.
-        code: A bank sorting code
-        account: The account number
-        holder: The name of the account holder
-        client: A client id number (optional)
+        return self._api_call("https://api.paymill.com/v2/payments/", dict_without_none(code=str(code), account=str(account), holder=str(holder), type='debit', client=str(client)), return_type=Payment)
 
+    def new_card(self, token, client=None):
+        """Create a card from a given token.
 
-        Returns: a dict with a member "data" containing a dict representing a debit card
+        :Parameters:
+         - `token` - string Unique credit card token
+         - `client` - A client id number (optional)
+
+        :Returns:
+            a dict with a member "data" containing a dict representing a card
         """
-        p = []
-        if code is not None and account is not None and holder is not None:
-            p += [("code", code), (
-                "account", account), ("holder", holder), ("type", "debit")]
-        if client is not None:
-            p += [("client", client)]
-        return self._apicall("https://api.paymill.com/v2/payments/", tuple(p))
+        return self._api_call("https://api.paymill.com/v2/payments", dict_without_none(token=str(token), client=str(client)), return_type=Payment)
 
-    def newcard(self, token, client=None):
-        """
-        Create a credit card from a given token.
-        token: string Unique credit card token
-        client: A client id number (optional)
+    def get_card(self, card_id):
+        """Get the details of a card from its ID.
 
-        Returns: a dict with a member "data" containing a dict representing a CC
-        """
-        p = [('token', token)]
-        if client is not None:
-            p += [("client", client)]
-        return self._apicall("https://api.paymill.com/v2/payments", tuple(p))
+        :Parameters:
+         - `card_id` - ID for the card
 
-    def getcarddetails(self, cardid):
+        :Returns:
+            a dict with a member "data" containing a dict representing a card
         """
-        Get the details of a credit card from its id.
-        cardid: string Unique id for the credit card
+        return self._api_call("https://api.paymill.com/v2/payments/" + str(card_id), return_type=Payment)
 
-        Returns: a dict with a member "data" containing a dict representing a CC
-        """
-        return self._apicall("https://api.paymill.com/v2/payments/" + str(cardid))
+    def get_cards(self):
+        """List all stored cards.
 
-    def getcards(self):
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a card
         """
-        List all stored cards.
+        return self._api_call("https://api.paymill.com/v2/payments/", return_type=Payment)
 
-        Returns: a dict with a member "data" which is an array of dicts, each representing a CC or debit card
+    def delete_card(self, card_id):
+        """Delete a stored card
+        
+        :Parameters:
+         - `card_id` - ID for the card to be deleted
         """
-        return self._apicall("https://api.paymill.com/v2/payments/")
-
-    def delcard(self, cardid):
-        """
-        Delete a stored CC
-        cardid: Unique id for the CC to be deleted
-
-        Returns: a dict with an member "data" containing an empty array
-        """
-        return self._apicall("https://api.paymill.com/v2/payments/%s" % (str(cardid),), cr="DELETE")
+        self._api_call("https://api.paymill.com/v2/payments/" + str(card_id), method="DELETE")
 
     def transact(self, amount=0, currency="eur", description=None, token=None, client=None, payment=None, preauth=None, code=None, account=None, holder=None):
-        """
-        Create a transaction (charge a card or account). You must provide an amount, and exactly one funding source.
+        """Create a transaction (charge a card or account). You must provide an amount, and exactly one funding source.
+        
         The amount is in cents, and the funding source can be a payment method id, a token, a preauthorization or a direct debit account.
-        amount: The amount (in CENTS) to be charged. For example, 240 will charge 2 euros and 40 cents, NOT 240 euros.
-        currency: ISO4217 currency code (optional)
-        description: A short description of the transaction (optional)
-        token: A token generated by the paymill bridge js library
-        client: A client id number (optional)
-        payment: A payment method id number (credit card id or debit account id)
-        preauth: A preauthorization id number
-        code: If paying by debit, the bank sorting code
-        account: If paying by debit, the account number
-        holder: If paying by debit, the name of the account holder
 
-        Returns: None if one of the required parameters is missing. A dict with a member "data" containing a transaction dict otherwise.
+        :Parameters:
+         - `amount` - The amount (in CENTS) to be charged. For example, 240 will charge 2 euros and 40 cents, NOT 240 euros.
+         - `currency` - ISO4217 currency code (optional)
+         - `description` - A short description of the transaction (optional)
+         - `token` - A token generated by the paymill bridge js library
+         - `client` - A client id number (optional)
+         - `payment` - A payment method id number (credit card id or debit account id)
+         - `preauth` - A preauthorization id number
+         - `code` - If paying by debit, the bank sorting code
+         - `account` - If paying by debit, the account number
+         - `holder` - If paying by debit, the name of the account holder
+
+        :Returns:
+            None if one of the required parameters is missing. A dict with a member "data" containing a transaction dict otherwise.
         """
-        p = []
-        if client is not None:
-            p += [("client", client)]
-        if payment is None and code is not None and account is not None and holder is not None:
-            try:
-                payment = self.newdebit(
-                    code, account, holder, client)["data"]["id"]
-            except:
-                return self.newdebit(code, account, holder, client)
-        if payment is not None:
-            p += [("payment", payment)]
+        if amount == 0:
+            return None
+
+        parameters = dict_without_none(amount=str(amount), currency=str(currency), client=str(client), description=str(description))
+
+        # figure out mode of payment
+        if payment is None:
+            if code is not None and account is not None and holder is not None:
+                parameters['payment'] = str(self.new_debit(code, account, holder, client))
+            else:
+                return None                
+        elif payment is not None:
+            parameters['payment'] = str(payment)
         elif token is not None:
-            p += [("token", token)]
+            parameters['token'] = str(token)
         elif preauth is not None:
-            p += [("preauthorization", preauth)]
+            parameters["preauthorization"] = str(preauth)
         else:
             return None
+
+        return self._api_call("https://api.paymill.com/v2/transactions/", parameters, return_type=Transaction)
+
+    def get_transaction(self, transaction_id):
+        """Get details on a transaction.
+
+        :Parameters:
+         - `transaction_id` - ID for the transaction
+
+        :Returns:
+            a dict representing a transaction
+        """
+        return self._api_call("https://api.paymill.com/v2/transactions/" + str(transaction_id), return_type=Transaction)
+
+    def get_transactions(self):
+        """List all transactions.
+
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a transaction
+        """
+        return self._api_call("https://api.paymill.com/v2/transactions/", return_type=Transaction)
+
+    def refund(self, transaction_id, amount, description=None):
+        """Refunds an already performed transaction.
+
+        :Parameters:
+         - `transaction_id` - string Unique transaction id
+         - `amount` - The amount in cents that are to be refunded
+         - `description` - A description of the refund (optional)
+
+        :Returns:
+            a dict with a member "data" which is a dict representing a refund, or None if the amount is 0
+        """
         if amount == 0:
             return None
-        if description is not None:
-            p += [("description", description)]
-        p += [("amount", str(amount))]
-        p += [("currency", currency)]
-        return self._apicall("https://api.paymill.com/v2/transactions/", tuple(p))
 
-    def gettransdetails(self, tranid):
-        """
-        Get details on a transaction.
-        tranid: string Unique id for the transaction
+        return self._api_call("https://api.paymill.com/v2/refunds/" + str(transaction_id), dict_without_none(amount=str(amount), description=str(description)), return_type=Refund)
 
-        Returns: a dict representing a transaction
-        """
-        return self._apicall("https://api.paymill.com/v2/transactions/" + str(tranid))
+    def get_refund(self, refund_id):
+        """Get the details of a refund from its ID.
+        
+        :Parameters:
+         - `refund_id` - ID for the refund
 
-    def gettrans(self):
+        :Returns:
+            a dict with a member "data" which is a dict representing a refund
         """
-        List all transactions.
+        return self._api_call("https://api.paymill.com/v2/refunds/" + str(refund_id), return_type=Refund)
 
-        Returns: a dict with a member "data" which is an array of dicts, each representing a transaction
-        """
-        return self._apicall("https://api.paymill.com/v2/transactions/")
+    def get_refunds(self):
+        """List all stored refunds.
 
-    def refund(self, tranid, amount, description=None):
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a refund
         """
-        Refunds an already performed transaction.
-        tranid: string Unique transaction id
-        amount: The amount in cents that are to be refunded
-        description: A description of the refund (optional)
+        return self._api_call("https://api.paymill.com/v2/refunds/", return_type=Refund)
 
-        Returns: a dict with a member "data" which is a dict representing a refund, or None if the amount is 0
-        """
-        if amount == 0:
-            return None
-        p = [("amount", str(amount))]
-        if description is not None:
-            p += [("description", description)]
-        return self._apicall("https://api.paymill.com/v2/refunds/" + str(tranid), tuple(p))
-
-    def getrefdetails(self, refid):
-        """
-        Get the details of a refund from its id.
-        refid: string Unique id for the refund
-
-        Returns: a dict with a member "data" which is a dict representing a refund
-        """
-        return self._apicall("https://api.paymill.com/v2/refunds/" + str(refid))
-
-    def getrefs(self):
-        """
-        List all stored refunds.
-
-        Returns: a dict with a member "data" which is an array of dicts, each representing a refund
-        """
-        return self._apicall("https://api.paymill.com/v2/refunds/")
-
-    def preauth(self, amount=0, currency="eur", description=None, token=None, client=None, payment=None):
-        """
-        Preauthorize a transaction (reserve value a card). You must provide an amount, and exactly one funding source.
+    def preauthorize(self, amount=0, currency="eur", description=None, token=None, client=None, payment=None):
+        """Preauthorize a transaction (reserve value a card). You must provide an amount, and exactly one funding source.
+        
         The amount is in cents, and the funding source can be a token or a payment id.
-        amount: The amount (in CENTS) to be charged. For example, 240 will charge 2 euros and 40 cents, NOT 240 euros.
-        currency: ISO4217 (optional)
-        token: A token generated by the paymill bridge js library
-        payment: A payment method id number. Must represent a credit card, not a debit payment.
+        
+        :Parameters:
+         - `amount` - The amount (in CENTS) to be charged. For example, 240 will charge 2 euros and 40 cents, NOT 240 euros.
+         - `currency` - ISO4217 (optional)
+         - `token` - A token generated by the paymill bridge js library
+         - `payment` - A payment method id number. Must represent a credit card, not a debit payment.
 
-        Returns: None if one of the required parameters is missing. A dict with a member "data" containing a preauthorization dict otherwise.
-        """
-        p = []
-        if payment is not None:
-            p += [("payment", payment)]
-        elif token is not None:
-            p += [("token", token)]
-        else:
-            return None
-        if amount == 0:
-            return None
-        p += [("amount", str(amount))]
-        p += [("currency", currency)]
-        return self._apicall("https://api.paymill.com/v2/preauthorizations/", tuple(p))
-
-    def getpreauthdetails(self, preid):
-        """
-        Get details on a preauthorization.
-        preid: string Unique id for the preauthorization
-
-        Returns: a dict representing a preauthorization
-        """
-        return self._apicall("https://api.paymill.com/v2/preauthorizations/" + str(preid))
-
-    def getpreauth(self):
-        """
-        List all preauthorizations.
-
-        Returns: a dict with a member "data" which is an array of dicts, each representing a preauthorization
-        """
-        return self._apicall("https://api.paymill.com/v2/preauthorizations/")
-
-    def newclient(self, email=None, description=None):
-        """
-        Creates a new client.
-        email: client's email address
-        description: description of this client (optional)
-
-        Returns: a dict with a member "data" which is a dict representing a client.
-        """
-        p = []
-        if description is not None:
-            p += [("description", description)]
-        if email is not None:
-            p += [("email", str(email))]
-        if p is []:
-            return None
-        return self._apicall("https://api.paymill.com/v2/clients", tuple(p))
-
-    def getclientdetails(self, cid):
-        """
-        Get the details of a client from its id.
-        cid: string Unique id for the client
-
-        Returns: a dict with a member "data" which is a dict representing a client
-        """
-        return self._apicall("https://api.paymill.com/v2/clients/" + str(cid))
-
-    def updateclient(self, cid, email, description=None):
-        """
-        Updates the details of a client.
-        cid: string Unique client id
-        email: The email of the client
-        description: A description of the client (optional)
-
-        Returns: a dict with a member "data" which is a dict representing a client
-        """
-        p = []
-        if description is not None:
-            p += [("description", description)]
-        if email is not None:
-            p += [("email", str(email))]
-        if p is []:
-            return None
-        return self._apicall("https://api.paymill.com/v2/clients/" + str(cid), tuple(p), cr="PUT")
-
-    def delclient(self, cid):
-        """
-        Delete a stored client
-        cid: Unique id for the client to be deleted
-
-        Returns: a dict with an member "data" containing an empty array
-        """
-        return self._apicall("https://api.paymill.com/v2/clients/%s" % (str(cid),), cr="DELETE")
-
-    def getclients(self):
-        """
-        List all stored clients.
-
-        Returns: a dict with a member "data" which is an array of dicts, each representing a client
-        """
-        return self._apicall("https://api.paymill.com/v2/clients/")
-
-    def exportclients(self):
-        """
-        Export all stored clients in CSV form
-
-        Returns: the contents of the CSV file
-        """
-        return self._apicall("https://api.paymill.com/v2/clients/", ch={"Accept": "text/csv"})
-
-    def newoffer(self, amount, interval="month", currency="eur", name=None):
-        """
-        Creates a new offer
-        amount: The amount in cents that are to be charged every interval
-        interval: MUST be either "week", "month" or "year"
-        currency: Must be an ISO_4217 formatted currency, "EUR" by default
-        name: A name for this offer
-
-        Returns: a dict with a member "data" which is a dict representing
-            an offer, or None if the amount is 0 or the interval or currency is invalid
+        :Returns:
+            None if one of the required parameters is missing. A dict with a member "data" containing a preauthorization dict otherwise.
         """
         if amount == 0:
             return None
-        p = [("amount", str(amount))]
+        if payment is None and token is None:
+            raise Exception("Please only provide token _or_ payment")
+        if (not payment is None) and (not token is None):
+            return None
+
+        return self._api_call("https://api.paymill.com/v2/preauthorizations/", dict_without_none(amount=str(amount), currency=str(currency), payment=str(payment), token=str(token)), return_type=Preauthorization)
+
+    def get_preauthorization(self, preauthorization_id):
+        """Get details on a preauthorization.
+
+        :Parameters:
+         - `preauthorization_id` - ID of the preauthorization
+
+        :Returns:
+            a dict representing a preauthorization
+        """
+        return self._api_call("https://api.paymill.com/v2/preauthorizations/" + str(preauthorization_id), return_type=Preauthorization)
+
+    def get_preauthorizations(self):
+        """List all preauthorizations.
+
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a preauthorization
+        """
+        return self._api_call("https://api.paymill.com/v2/preauthorizations/", return_type=Preauthorization)
+
+    def new_client(self, email=None, description=None):
+        """Creates a new client.
+
+        :Parameters:
+         - `email` - client's email address
+         - `description` - description of this client (optional)
+
+        :Returns:
+            a dict with a member "data" which is a dict representing a client.
+        """
+        parameters = dict_without_none(description=str(description), email=str(email))
+        if len(parameters) == 0:
+            return None
+        return self._api_call("https://api.paymill.com/v2/clients", parameters, return_type=Client)
+
+    def get_client(self, client_id):
+        """Get the details of a client from its ID.
+        
+        :Parameters:
+         - `client_id` - ID of the client
+
+        :Returns:
+            a dict with a member "data" which is a dict representing a client
+        """
+        return self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), return_type=Client)
+
+    def update_client(self, client_id, email, description=None):
+        """Updates the details of a client.
+
+        :Parameters:
+         - `client_id` - ID of the client
+         - `email` - The email of the client
+         - `description` - A description of the client (optional)
+
+        :Returns:
+            a dict with a member "data" which is a dict representing a client
+        """
+        parameters = dict_without_none(description=str(description), email=str(email))
+        if len(parameters) == 0:
+            return None
+        return self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), parameters, method="PUT", return_type=Client)
+
+    def delete_client(self, client_id):
+        """Delete a stored client
+        
+        :Parameters:
+         - `client_id` - ID of the client to be deleted
+        """
+        self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), method="DELETE")
+
+    def get_clients(self):
+        """List all stored clients.
+
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a client
+        """
+        return self._api_call("https://api.paymill.com/v2/clients/", return_type=Client)
+
+    def export_clients(self):
+        """Export all stored clients in CSV form
+
+        :Returns:
+            the contents of the CSV file
+        """
+        return self._api_call("https://api.paymill.com/v2/clients/", headers={"Accept": "text/csv"}, parse_json=False)
+
+    def new_offer(self, amount, interval="month", currency="eur", name=None):
+        """Creates a new offer
+
+        :Parameters:
+         - `amount` - The amount in cents that are to be charged every interval
+         - `interval` - MUST be either "week", "month" or "year"
+         - `currency` - Must be an ISO_4217 formatted currency, "EUR" by default
+         - `name` - A name for this offer
+
+        :Returns:
+            a dict with a member "data" which is a dict representing an offer, or None if the amount is 0 or the interval or currency is invalid
+        """
+        if amount == 0:
+            return None
         if interval not in ["week", "month", "year"]:
             return None
-        p += [("currency", str(currency))]
-        p += [("interval", str(interval))]
-        p += [("currency", str(currency))]
-        if name is not None:
-            p += [("name", name)]
-        return self._apicall("https://api.paymill.com/v2/offers", tuple(p))
 
-    def getofferdetails(self, oid):
-        """
-        Get the details of an offer from its id.
-        oid: string Unique id for the offer
+        return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name)), return_type=Offer)
 
-        Returns: a dict with a member "data" which is a dict representing an offer
-        """
-        return self._apicall("https://api.paymill.com/v2/offers/" + str(oid))
+    def get_offer(self, offer_id):
+        """Get the details of an offer from its ID.
 
-    def updateoffer(self, oid, name):
-        """
-        Updates the details of an offer. Only the name may be changed
-        oid: string Unique offer id
-        name: The new name of the offer
+        :Parameters:
+         - `offer_id` - ID ofr the offer
 
-        Returns: a dict with a member "data" which is a dict representing an offer
+        :Returns:
+            a dict with a member "data" which is a dict representing an offer
         """
-        p = [("name", str(name))]
-        return self._apicall("https://api.paymill.com/v2/offers/" + str(oid), tuple(p))
+        return self._api_call("https://api.paymill.com/v2/offers/" + str(offer_id), return_type=Offer)
 
-    def deloffer(self, oid):
-        """
-        Delete a stored offer. May only be done if no subscriptions to this offer are active.
-        oid: Unique id for the offer to be deleted
+    def update_offer(self, offer_id, name):
+        """Updates the details of an offer. Only the name may be changed
 
-        Returns: a dict with an member "data" containing an empty array
-        """
-        return self._apicall("https://api.paymill.com/v2/offers/%s" % (str(oid),), cr="DELETE")
+        :Parameters:
+         - `offer_id` - string Unique offer id
+         - `name` - The new name of the offer
 
-    def getoffers(self):
+        :Returns:
+            a dict with a member "data" which is a dict representing an offer
         """
-        List all stored offers.
+        return self._api_call("https://api.paymill.com/v2/offers/" + str(offer_id), {'name': str(name)}, return_type=Offer)
 
-        Returns: a dict with a member "data" which is an array of dicts, each representing an offer
+    def delete_offer(self, offer_id):
+        """Delete a stored offer. May only be done if no subscriptions to this offer are active.
+        
+        :Parameters:
+         - `offer_id` - ID of the offer to be deleted
         """
-        return self._apicall("https://api.paymill.com/v2/offers/")
+        self._api_call("https://api.paymill.com/v2/offers/" + str(offer_id), method="DELETE")
 
-    def newsub(self, client, offer, payment):
-        """
-        Subscribes a client to an offer
-        client: The id of the client
-        offer: The id of the offer
-        payment: The id of the payment instrument used for this offer
+    def get_offers(self):
+        """List all stored offers.
 
-        Returns: a dict with a member "data" which is a dict representing a subscription
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing an offer
         """
-        p = [("offer", str(offer)), ("client", str(client)), (
-            "payment", str(payment))]
-        return self._apicall("https://api.paymill.com/v2/subscriptions", tuple(p))
+        return self._api_call("https://api.paymill.com/v2/offers/", return_type=Offer)
 
-    def getsubdetails(self, sid):
-        """
-        Get the details of a subscription from its id.
-        sid: string Unique id for the subscription
+    def new_subscription(self, client, offer, payment):
+        """Subscribes a client to an offer
+        
+        :Parameters:
+         - `client` - The id of the client
+         - `offer` - The id of the offer
+         - `payment` - The id of the payment instrument used for this offer
 
-        Returns: a dict with a member "data" which is a dict representing a subscription
+        :Returns:
+            a dict with a member "data" which is a dict representing a subscription
         """
-        return self._apicall("https://api.paymill.com/v2/subscriptions/" + str(sid))
+        return self._api_call("https://api.paymill.com/v2/subscriptions", {'offer': str(offer), 'client': str(client), 'payment': str(payment)}, return_type=Subscription)
 
-    def updatesub(self, sid, offer):
-        """
-        Change the offer that a subscription is attached to
-        sid: string Unique id for the subscription
-        offer: string The id of the new offer
+    def get_subscription(self, subscription_id):
+        """Get the details of a subscription from its id.
+        
+        :Parameters:
+         - `subscription_id` - ID of the subscription
 
-        Returns: a dict with a member "data" which represents the subscription
+        :Returns:
+            a dict with a member "data" which is a dict representing a subscription
         """
-        p = [("offer", offer)]
-        return self._apicall("https://api.paymill.de/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
+        return self._api_call("https://api.paymill.com/v2/subscriptions/" + str(subscription_id), return_type=Subscription)
 
-    def cancelsubafter(self, sid, cancel=True):
-        """
-        Cancels a subscription after its interval ends
-        sid: string Unique subscription id
-        cancel: If True, the subscription will be cancelled at the end of its interval. Set to False to undo.
+    def update_subscription(self, subscription_id, offer):
+        """Change the offer that a subscription is attached to
+        
+        :Parameters:
+         - `subscription_id` - ID of the subscription
+         - `offer` - ID of the new offer
 
-        Returns: a dict with a member "data" which is a dict representing a subscription
+        :Returns:
+            a dict with a member "data" which represents the subscription
         """
-        if cancel:
-            p = [("cancel_at_period_end", "true")]
-        else:
-            p = [("cancel_at_period_end", "false")]
-        return self._apicall("https://api.paymill.com/v2/subscriptions/" + str(sid), tuple(p), cr="PUT")
+        return self._api_call("https://api.paymill.de/v2/subscriptions/" + str(subscription_id), {'offer': str(offer)}, method="PUT", return_type=Subscription)
 
-    def cancelsubnow(self, sid):
-        """
-        Cancel a subscription immediately. Pending transactions will still be charged.
-        sid: Unique subscription id
+    def cancel_subscription_after_interval(self, subscription_id, cancel=True):
+        """Cancels a subscription after its interval ends
+        
+        :Parameters:
+         - `subscription_id` - ID of the subscription
+         - `cancel` - If True, the subscription will be cancelled at the end of its interval. Set to False to undo.
 
-        Returns: a dict with an member "data"
+        :Returns:
+            a dict with a member "data" which is a dict representing a subscription
         """
-        return self._apicall("https://api.paymill.com/v2/subscriptions/%s" % (str(sid),), cr="DELETE")
+        return self._api_call("https://api.paymill.com/v2/subscriptions/" + str(subscription_id), {'cancel_at_period_end': "true" if cancel else "false"}, method="PUT", return_type=Subscription)
 
-    def getsubs(self):
+    def cancel_subscription_now(self, subscription_id):
+        """Cancel a subscription immediately. Pending transactions will still be charged.
+        
+        :Parameters:
+         - `subscription_id` - ID of the subscription
         """
-        List all stored subscriptions.
+        self._api_call("https://api.paymill.com/v2/subscriptions/" + str(subscription_id), method="DELETE")
 
-        Returns: a dict with a member "data" which is an array of dicts, each representing a subscription
-        """
-        return self._apicall("https://api.paymill.com/v2/subscriptions/")
+    def get_subscriptions(self):
+        """List all stored subscriptions.
 
-    def newhook(self, url, event_types):
+        :Returns:
+            a dict with a member "data" which is an array of dicts, each representing a subscription
         """
-        Create a webhook to react to an event
-        url: the url for paymill server to Call
-        event_type: array. The event type to react to. exemple : ['subscription.deleted','subscription.failed']
+        return self._api_call("https://api.paymill.com/v2/subscriptions/", return_type=Subscription)
 
-        return: a dict containing the webhook description
-        """
-        data = {
-            'url':url,
-            'event_types':event_types
-        }
-        return self._apicall("https://api.paymill.com/v2/webhooks", data)
+    def new_webhook(self, url, event_types):
+        """Create a webhook to react to an event
 
-    def delhook(self, id):
-        """
-        Delete a webhook.
-        """
-        return self._apicall("https://api.paymill.com/v2/webhooks/%s" % (str(id),), cr="DELETE")
+        :Parameters:
+         - `url` - the url for paymill server to Call
+         - `event_type` - an array of event types to react to. exemple : ['subscription.deleted','subscription.failed']
 
-    def gethook(self, id):
+        :Returns:
+            a dict containing the webhook description
         """
-        Get the details of a webhook.
-        """
-        return self._apicall("https://api.paymill.com/v2/webhooks/%s" % (str(id),))
+        return self._api_call("https://api.paymill.com/v2/webhooks", {'url': str(url), 'event_types': event_types}, return_type=Webhook)
 
-    def listhooks(self):
-        """
-        List all webhooks.
+    def delete_webhook(self, webhook_id):
+        """Delete a webhook.
 
-        Returns: a dict
+        :Parameters:
+         - `webhook_id` - the ID of the webhook to be deleted
         """
-        return self._apicall("https://api.paymill.com/v2/webhooks/")
+        self._api_call("https://api.paymill.com/v2/webhooks/" + str(webhook_id), method="DELETE")
+
+    def get_webhook(self, webhook_id):
+        """Get the details of a webhook.
+        
+        :Parameters:
+         - `webhook_id` - the ID of the webhook to be retrieved
+        
+        :Returns:
+            a Webhook instance
+        """
+        return self._api_call("https://api.paymill.com/v2/webhooks/" + str(webhook_id), return_type=Webhook)
+
+    def get_webhooks(self):
+        """List all webhooks.
+
+        :Returns:
+            a dict
+        """
+        return self._api_call("https://api.paymill.com/v2/webhooks/", return_type=Webhook)
         
     def response_code2text(self, response_code):
+        """Utility function to convert from response codes in some object to human readable text
+        
+        :Parameters:
+         - `response_code` - response code from data object
+        
+        :Returns:
+            Human readable representation of the issue encountered
+        """
         texts = {
                 10001:    'General undefined response.',
                 10002:    'Still waiting on something.',
@@ -593,8 +756,8 @@ class Pymill():
 
 
 if __name__ == "__main__":
-    p = Pymill("YOURPRIVATEKEYHERE")
-    cc = (p.getcards())["data"][0]["id"]
-    print p.getcarddetails(cc)
+    p = Pymill("YOUR_PRIVATE_API_KEY_GOES_HERE")
+    for offer in p.get_offers():
+        print offer
     #print p.transact(amount=300,code="86055500",account="1234512345",holder="Max Mustermann",description="debittest")
     #print p.transact(amount=300,payment=cc,description="pymilltest")
