@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
+from datetime import datetime, timedelta
 import logging
+import time
+
 import requests
 
 
@@ -25,6 +28,16 @@ class PaymillObject(object):
         if hasattr(self, 'id'):
             return self.id
         return super(PaymillObject, self).__str__()
+
+    def __repr__(self):
+        result = str(type(self)) + "\n"
+        for key in dir(self):
+            if callable(getattr(self, key)):
+                continue
+            if key.startswith("__"):
+                continue
+            result = result + "\t%s: %s\n" %(str(key), str(getattr(self, key)))
+        return result
     
 
 class Payment(PaymillObject):
@@ -368,7 +381,7 @@ class Pymill(object):
         # figure out mode of payment
         if payment is None:
             if code is not None and account is not None and holder is not None:
-                parameters['payment'] = str(self.new_debit(code, account, holder, client))
+                parameters['payment'] = str(self.new_debit_card(code, account, holder, client))
             else:
                 return None                
         elif payment is not None:
@@ -602,7 +615,7 @@ class Pymill(object):
         """
         return self._api_call("https://api.paymill.com/v2/offers/", return_type=Offer)
 
-    def new_subscription(self, client, offer, payment):
+    def new_subscription(self, client, offer, payment, start_at=None):
         """Subscribes a client to an offer
         
         :Parameters:
@@ -613,7 +626,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a subscription
         """
-        return self._api_call("https://api.paymill.com/v2/subscriptions", {'offer': str(offer), 'client': str(client), 'payment': str(payment)}, return_type=Subscription)
+        return self._api_call("https://api.paymill.com/v2/subscriptions", dict_without_none(offer=str(offer), client=str(client), payment=str(payment), start_at=start_at), return_type=Subscription)
 
     def get_subscription(self, subscription_id):
         """Get the details of a subscription from its id.
@@ -756,8 +769,34 @@ class Pymill(object):
 
 
 if __name__ == "__main__":
-    p = Pymill("YOUR_PRIVATE_API_KEY_GOES_HERE")
-    for offer in p.get_offers():
-        print offer
-    #print p.transact(amount=300,code="86055500",account="1234512345",holder="Max Mustermann",description="debittest")
-    #print p.transact(amount=300,payment=cc,description="pymilltest")
+    p = Pymill("(your paymill private key)")
+    
+    # list stored cards
+    #for card in p.get_cards():
+    #    print repr(card)
+    
+    # list stored clients
+    #for client in p.get_clients():
+    #    print repr(client)
+
+    # charge debit card
+    #transaction1 = p.transact(amount=300, code="86055500", account="1234512345", holder="Max Mustermann", description="debittest")
+    #print repr(transaction1)
+    
+    # charge credit card
+    #transaction2 = p.transact(amount=300, payment=p.get_cards()[0], description="pymilltest")
+    #print repr(transaction2)
+
+    # subscribe client to offer
+    #client1 = p.new_client("max@figo.me")
+    #card1 = p.new_debit_card(code="86055500", account="1234512345", holder="Max Mustermann", client=client1)
+    #offer1 = p.get_offers()[0]
+    #subscription = p.new_subscription(client1, offer1, card1)
+    #print repr(subscription)
+    
+    # subscribe client to offer, but start later to charge him
+    client1 = p.get_client("(some client id)")
+    card1 = Payment(**client1.payment[0])
+    offer1 = p.get_offers()[0]
+    subscription = p.new_subscription(client1, offer1, card1, start_at=time.mktime((datetime.utcnow() + timedelta(days=15)).timetuple()))
+    print repr(subscription)
