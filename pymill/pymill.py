@@ -626,7 +626,12 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a subscription
         """
-        return self._api_call("https://api.paymill.com/v2/subscriptions", dict_without_none(offer=str(offer), client=str(client), payment=str(payment), start_at=start_at), return_type=Subscription)
+        # convert start_at to unixtime
+        real_start_at = start_at
+        if isinstance(real_start_at, datetime):
+            real_start_at = time.mktime(real_start_at.timetuple())
+        
+        return self._api_call("https://api.paymill.com/v2/subscriptions", dict_without_none(offer=str(offer), client=str(client), payment=str(payment), start_at=real_start_at), return_type=Subscription)
 
     def get_subscription(self, subscription_id):
         """Get the details of a subscription from its id.
@@ -798,5 +803,5 @@ if __name__ == "__main__":
     client1 = p.get_client("(some client id)")
     card1 = Payment(**client1.payment[0])
     offer1 = p.get_offers()[0]
-    subscription = p.new_subscription(client1, offer1, card1, start_at=time.mktime((datetime.utcnow() + timedelta(days=15)).timetuple()))
+    subscription = p.new_subscription(client1, offer1, card1, start_at=(datetime.utcnow() + timedelta(days=15)))
     print repr(subscription)
