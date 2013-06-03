@@ -551,7 +551,7 @@ class Pymill(object):
         :Parameters:
          - `client_id` - ID of the client to be deleted
         """
-        self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), method="DELETE")
+        return self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), method="DELETE", return_type=Client)
 
     def get_clients(self):
         """List all stored clients.
@@ -686,7 +686,7 @@ class Pymill(object):
         :Parameters:
          - `subscription_id` - ID of the subscription
         """
-        self._api_call("https://api.paymill.com/v2/subscriptions/" + str(subscription_id), method="DELETE")
+        return self._api_call("https://api.paymill.com/v2/subscriptions/" + str(subscription_id), method="DELETE", return_type=Subscription)
 
     def get_subscriptions(self):
         """List all stored subscriptions.
