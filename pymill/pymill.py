@@ -224,8 +224,20 @@ class Subscription(PaymillObject):
     interval = None
     """ "week", "month", or "year". The client will be charged every time the interval passes"""
 
-    clients = None
-    """array of client objects"""
+    payment = None
+    """Payment which is used to pay for the subscription"""
+
+    client = None
+    """Client who owns this subscription"""
+
+    next_capture_at = None
+    """Unix timestamp of next charge"""
+
+    trial_start = None
+    """Unix timestamp when the trial period starts"""
+
+    trial_end = None
+    """Unix timestamp when the trial period ends"""
 
     created_at = None
     """unix timestamp identifying time of creation"""
