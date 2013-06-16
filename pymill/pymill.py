@@ -391,11 +391,11 @@ class Pymill(object):
         parameters = dict_without_none(amount=str(amount), currency=str(currency), client=str(client), description=str(description))
 
         # figure out mode of payment
-        if payment is None:
-            if code is not None and account is not None and holder is not None:
-                parameters['payment'] = str(self.new_debit_card(code, account, holder, client))
-            else:
-                return None                
+
+        if payment is None and (code is not None and
+                                account is not None and
+                                holder is not None):
+            parameters['payment'] = str(self.new_debit_card(code, account, holder, client))
         elif payment is not None:
             parameters['payment'] = str(payment)
         elif token is not None:
