@@ -8,7 +8,7 @@ import pymill
 p = pymill.Pymill("YOUR PRIVATE KEY GOES HERE")
 
 # show IDs for all stored cards
-for card in p.getcards():
+for card in p.get_cards():
     print card 
 
 # create new card, run transaction on it and refund part of that again
