@@ -30,7 +30,7 @@ def test_transact_requirements_with_preauth():
     assert pm.call_args['params'].get('preauthorization') == 'preauth'
 
 
-def test_trasact_requirements_with_payment():
+def test_transact_requirements_with_payment():
     """
     Required parameters:
 
