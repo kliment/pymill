@@ -200,7 +200,7 @@ class Offer(PaymillObject):
     """The amount, in CENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode."""
 
     interval = None
-    """"week", "month", or "year". The client will be charged every time the interval passes"""
+    """Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY. The client will be charged every time the interval passes"""
 
     trial_period_days = None
     """Number of days before the first charge. (optional)"""
