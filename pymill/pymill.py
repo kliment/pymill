@@ -4,6 +4,7 @@
 from datetime import datetime, timedelta
 import logging
 import time
+import re
 
 import requests
 
@@ -199,7 +200,7 @@ class Offer(PaymillObject):
     """The amount, in CENTS, to be charged every time the offer period passes. Note that ODD values will NOT work in test mode."""
 
     interval = None
-    """"week", "month", or "year". The client will be charged every time the interval passes"""
+    """Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY. The client will be charged every time the interval passes"""
 
     trial_period_days = None
     """Number of days before the first charge. (optional)"""
@@ -574,7 +575,7 @@ class Pymill(object):
 
         :Parameters:
          - `amount` - The amount in cents that are to be charged every interval
-         - `interval` - MUST be either "week", "month" or "year"
+         - `interval` - Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY
          - `currency` - Must be an ISO_4217 formatted currency, "EUR" by default
          - `name` - A name for this offer
 
@@ -583,8 +584,14 @@ class Pymill(object):
         """
         if amount == 0:
             return None
-        if interval not in ["week", "month", "year"]:
-            return None
+        if not str(amount).isdigit():
+            raise ValueError, "amount is not a number"
+        if '.' in str(amount):
+            raise ValueError, "amount is not an integer"
+
+        interval_re = re.compile(r'^[0-9]*\ ?(DAY|WEEK|MONTH|YEAR)$', flags=re.I)
+        if not re.findall(interval_re, interval):
+            raise ValueError, "Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY"
 
         return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name)), return_type=Offer)
 

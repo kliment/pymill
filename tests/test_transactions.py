@@ -1,27 +1,4 @@
-import pymill
-
-
-class MockPymill(pymill.Pymill):
-    """
-    This is a simple mocker for Pymill's _api_call handling which exposes
-    the call parameters after being called.
-    """
-    call_params = None
-    call_kwargs = None
-    api_called = False
-
-    def _api_call(self, url, params={}, method="GET", headers=None,
-                  parse_json=True, return_type=None):
-        self.api_called = True
-        self.call_args = {
-            'url': url,
-            'params': params,
-            'method': method,
-            'headers': headers,
-            'parse_json': parse_json,
-            'return_type': return_type,
-        }
-
+from mock import MockPymill
 
 def test_transact_requirements_with_token():
     """
@@ -53,7 +30,7 @@ def test_transact_requirements_with_preauth():
     assert pm.call_args['params'].get('preauthorization') == 'preauth'
 
 
-def test_trasact_requirements_with_payment():
+def test_transact_requirements_with_payment():
     """
     Required parameters:
 
