@@ -12,7 +12,7 @@ for card in p.get_cards():
     print card 
 
 # create new card, run transaction on it and refund part of that again
-card = p.newcard("token from Paymill bridge goes here")
+card = p.new_card("token from Paymill bridge goes here")
 transaction = p.transact(230, payment=card)
 ref = p.refund(transaction, 30)
 ```
