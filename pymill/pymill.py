@@ -514,7 +514,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a client.
         """
-        parameters = dict_without_none(description=str(description), email=str(email))
+        parameters = dict_without_none(description=unicode(description), email=str(email))
         if len(parameters) == 0:
             return None
         return self._api_call("https://api.paymill.com/v2/clients", parameters, return_type=Client)
@@ -541,7 +541,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a client
         """
-        parameters = dict_without_none(description=str(description), email=str(email))
+        parameters = dict_without_none(description=unicode(description), email=str(email))
         if len(parameters) == 0:
             return None
         return self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), parameters, method="PUT", return_type=Client)
