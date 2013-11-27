@@ -1,3 +1,8 @@
 /pymill.egg-info/
 *.pyc
 docs/_build/
+
+# Intellij
+.idea/
+*.iml
+*.iws

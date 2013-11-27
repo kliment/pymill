@@ -37,7 +37,7 @@ class PaymillObject(object):
                 continue
             if key.startswith("__"):
                 continue
-            result = result + "\t%s: %s\n" %(str(key), str(getattr(self, key)))
+            result += "\t%s: %s\n" % (str(key), str(getattr(self, key)))
         return result
     
 
@@ -281,7 +281,7 @@ class Pymill(object):
         self.session.auth = (privatekey, "")
         self.session.verify = False
 
-    def _api_call(self, url, params={}, method="GET", headers=None, parse_json=True, return_type=None):
+    def _api_call(self, url, params=None, method="GET", headers=None, parse_json=True, return_type=None):
         """Call an API method.
 
         :Parameters:
@@ -293,6 +293,7 @@ class Pymill(object):
         :Returns:
             a dictionary object populated with the json returned.
         """
+        if not params: params = {}
         request = {'GET': self.session.get, 'DELETE': self.session.delete, 'PUT': self.session.put, 'POST': self.session.post}[method]
         if len(params) > 0 and not method in ('DELETE', 'PUT'):
             request = self.session.post
@@ -570,7 +571,7 @@ class Pymill(object):
         """
         return self._api_call("https://api.paymill.com/v2/clients/", headers={"Accept": "text/csv"}, parse_json=False)
 
-    def new_offer(self, amount, interval="month", currency="eur", name=None):
+    def new_offer(self, amount, interval="month", currency="eur", name=None, trial_period_days=0):
         """Creates a new offer
 
         :Parameters:
@@ -588,12 +589,16 @@ class Pymill(object):
             raise ValueError, "amount is not a number"
         if '.' in str(amount):
             raise ValueError, "amount is not an integer"
+        if not str(trial_period_days).isdigit():
+            raise ValueError, "amount is not a number"
+        if '.' in str(trial_period_days):
+            raise ValueError, "amount is not an integer"
 
         interval_re = re.compile(r'^[0-9]*\ ?(DAY|WEEK|MONTH|YEAR)$', flags=re.I)
         if not re.findall(interval_re, interval):
             raise ValueError, "Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY"
 
-        return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name)), return_type=Offer)
+        return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name), trial_period_days=str(trial_period_days)), return_type=Offer)
 
     def get_offer(self, offer_id):
         """Get the details of an offer from its ID.
