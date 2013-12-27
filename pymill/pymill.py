@@ -7,7 +7,7 @@ import time
 import re
 
 import requests
-
+import collections
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class PaymillObject(object):
             logger.debug("New/undocumented field '%s'", field_name)
 
     def __init__(self, *args, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in list(kwargs.items()):
             self._check_field(key)
             setattr(self, key, value)
 
@@ -33,7 +33,7 @@ class PaymillObject(object):
     def __repr__(self):
         result = str(type(self)) + "\n"
         for key in dir(self):
-            if callable(getattr(self, key)):
+            if isinstance(getattr(self, key), collections.Callable):
                 continue
             if key.startswith("__"):
                 continue
@@ -265,7 +265,7 @@ def dict_without_none(**kwargs):
     """Creates a dictionary without the keys associated with None"""
     
     result = {}
-    for key, value in kwargs.iteritems():
+    for key, value in list(kwargs.items()):
         if value in (None, str(None), ''):
             continue
         result[key] = value
@@ -515,7 +515,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a client.
         """
-        parameters = dict_without_none(description=unicode(description), email=str(email))
+        parameters = dict_without_none(description=str(description), email=str(email))
         if len(parameters) == 0:
             return None
         return self._api_call("https://api.paymill.com/v2/clients", parameters, return_type=Client)
@@ -542,7 +542,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing a client
         """
-        parameters = dict_without_none(description=unicode(description), email=str(email))
+        parameters = dict_without_none(description=str(description), email=str(email))
         if len(parameters) == 0:
             return None
         return self._api_call("https://api.paymill.com/v2/clients/" + str(client_id), parameters, method="PUT", return_type=Client)
@@ -586,17 +586,17 @@ class Pymill(object):
         if amount == 0:
             return None
         if not str(amount).isdigit():
-            raise ValueError, "amount is not a number"
+            raise ValueError("amount is not a number")
         if '.' in str(amount):
-            raise ValueError, "amount is not an integer"
+            raise ValueError("amount is not an integer")
         if not str(trial_period_days).isdigit():
-            raise ValueError, "amount is not a number"
+            raise ValueError("amount is not a number")
         if '.' in str(trial_period_days):
-            raise ValueError, "amount is not an integer"
+            raise ValueError("amount is not an integer")
 
         interval_re = re.compile(r'^[0-9]*\ ?(DAY|WEEK|MONTH|YEAR)$', flags=re.I)
         if not re.findall(interval_re, interval):
-            raise ValueError, "Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY"
+            raise ValueError("Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY")
 
         return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name), trial_period_days=str(trial_period_days)), return_type=Offer)
 
@@ -828,4 +828,4 @@ if __name__ == "__main__":
     card1 = Payment(**client1.payment[0])
     offer1 = p.get_offers()[0]
     subscription = p.new_subscription(client1, offer1, card1, start_at=(datetime.utcnow() + timedelta(days=15)))
-    print repr(subscription)
+    print((repr(subscription)))

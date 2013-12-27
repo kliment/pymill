@@ -41,8 +41,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pymill'
-copyright = u'2013, stefan@02strich.de'
+project = 'pymill'
+copyright = '2013, stefan@02strich.de'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -187,8 +187,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'pymill.tex', u'pymill Documentation',
-   u'stefan@02strich.de', 'manual'),
+  ('index', 'pymill.tex', 'pymill Documentation',
+   'stefan@02strich.de', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -217,8 +217,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pymill', u'pymill Documentation',
-     [u'stefan@02strich.de'], 1)
+    ('index', 'pymill', 'pymill Documentation',
+     ['stefan@02strich.de'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -231,8 +231,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pymill', u'pymill Documentation',
-   u'stefan@02strich.de', 'pymill', 'One line description of project.',
+  ('index', 'pymill', 'pymill Documentation',
+   'stefan@02strich.de', 'pymill', 'One line description of project.',
    'Miscellaneous'),
 ]
 
