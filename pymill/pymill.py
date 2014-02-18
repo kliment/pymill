@@ -78,6 +78,12 @@ class Payment(PaymillObject):
     holder = None
     """name of the account holder (For debit accounts only)"""
 
+    iban = None
+    """International Bank Account Number (For debit accounts only)"""
+
+    bic = None
+    """Business Identifier Code (For debit accounts only)"""
+
     created_at = None
     """unix timestamp identifying time of creation"""
 
