@@ -724,7 +724,7 @@ class Pymill(object):
         :Returns:
             a dict containing the webhook description
         """
-        return self._api_call("https://api.paymill.com/v2/webhooks", {'url': str(url), 'event_types': event_types}, return_type=Webhook)
+        return self._api_call("https://api.paymill.com/v2/webhooks", {'url': str(url), 'event_types[]': event_types}, return_type=Webhook)
 
     def delete_webhook(self, webhook_id):
         """Delete a webhook.
