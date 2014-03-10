@@ -604,7 +604,7 @@ class Pymill(object):
         if not re.findall(interval_re, interval):
             raise ValueError, "Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY"
 
-        return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=str(name), trial_period_days=str(trial_period_days)), return_type=Offer)
+        return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=unicode(name), trial_period_days=str(trial_period_days)), return_type=Offer)
 
     def get_offer(self, offer_id):
         """Get the details of an offer from its ID.
@@ -627,7 +627,7 @@ class Pymill(object):
         :Returns:
             a dict with a member "data" which is a dict representing an offer
         """
-        return self._api_call("https://api.paymill.com/v2/offers/" + str(offer_id), {'name': str(name)}, return_type=Offer)
+        return self._api_call("https://api.paymill.com/v2/offers/" + str(offer_id), {'name': unicode(name)}, return_type=Offer)
 
     def delete_offer(self, offer_id):
         """Delete a stored offer. May only be done if no subscriptions to this offer are active.
