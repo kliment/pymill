@@ -8,6 +8,7 @@ import re
 
 import requests
 
+from .exception import get_api_exception, OfferException, PreauthException
 
 logger = logging.getLogger(__name__)
 
@@ -298,6 +299,9 @@ class Pymill(object):
 
         :Returns:
             a dictionary object populated with the json returned.
+
+        :Raises:
+            APIException
         """
         if not params: params = {}
         request = {'GET': self.session.get, 'DELETE': self.session.delete, 'PUT': self.session.put, 'POST': self.session.post}[method]
@@ -316,7 +320,8 @@ class Pymill(object):
                     else:
                         return [return_type(**x) for x in json_data['data']]
                 else:
-                    raise Exception(json_data)
+                    # raises a subclass of PymillException for proper exception handling
+                    raise get_api_exception(json_data)
         else:
             return response.text
 
@@ -482,11 +487,14 @@ class Pymill(object):
 
         :Returns:
             None if one of the required parameters is missing. A dict with a member "data" containing a preauthorization dict otherwise.
+
+        :Raises:
+            PreauthException
         """
         if amount == 0:
             return None
         if payment is None and token is None:
-            raise Exception("Please only provide token _or_ payment")
+            raise PreauthException("Please only provide token _or_ payment")
         if (not payment is None) and (not token is None):
             return None
 
@@ -588,21 +596,24 @@ class Pymill(object):
 
         :Returns:
             a dict with a member "data" which is a dict representing an offer, or None if the amount is 0 or the interval or currency is invalid
+
+        :Raises:
+            OfferException
         """
         if amount == 0:
             return None
         if not str(amount).isdigit():
-            raise ValueError, "amount is not a number"
+            raise OfferException("amount is not a number")
         if '.' in str(amount):
-            raise ValueError, "amount is not an integer"
+            raise OfferException("amount is not an integer")
         if not str(trial_period_days).isdigit():
-            raise ValueError, "amount is not a number"
+            raise OfferException("amount is not a number")
         if '.' in str(trial_period_days):
-            raise ValueError, "amount is not an integer"
+            raise OfferException("amount is not an integer")
 
         interval_re = re.compile(r'^[0-9]*\ ?(DAY|WEEK|MONTH|YEAR)$', flags=re.I)
         if not re.findall(interval_re, interval):
-            raise ValueError, "Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY"
+            raise OfferException("Format: number DAY|WEEK|MONTH|YEAR Example: 2 DAY")
 
         return self._api_call("https://api.paymill.com/v2/offers", dict_without_none(amount=str(amount), currency=str(currency), interval=str(interval), name=unicode(name), trial_period_days=str(trial_period_days)), return_type=Offer)
 

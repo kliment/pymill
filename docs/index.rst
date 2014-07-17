@@ -8,6 +8,10 @@ Welcome to pymill's documentation!
    :members:
    :undoc-members:
 
+.. automodule:: pymill.exception
+   :members:
+   :undoc-members:
+
 
 Indices and tables
 ==================
