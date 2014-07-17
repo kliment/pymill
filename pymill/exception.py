@@ -53,7 +53,7 @@ class APIException(PymillException):
     """
     Baseclass of all exceptions that can happen during an APICall
     """
-    pass
+    response_exception = None
 
 
 class SubscriptionAlreadyConnected(APIException):
@@ -68,3 +68,59 @@ class TokenNotFound(APIException):
 
     """
     response_exception = "token_not_found"
+
+
+class SubscriptionNotFound(APIException):
+    """
+    Raised if the subscription can not be found
+    """
+    response_exception = "subscription_not_found"
+
+
+class ClientNotFound(APIException):
+    """
+    Raised if the client can not be found
+    """
+    response_exception = "client_not_found"
+
+
+class PaymentNotFound(APIException):
+    """
+    Raised if the payment can not be found
+    """
+    response_exception = "not_found_payment"
+
+
+class OfferNotFound(APIException):
+    """
+    Raised if the offer can not be found
+    """
+    response_exception = "offer_not_found"
+
+
+class TransactionNotFound(APIException):
+    """
+    Raised if the transaction can not be found
+    """
+    response_exception = "transaction_not_found"
+
+
+class PreauthorizationNotFound(APIException):
+    """
+    Raised if the preauthorization can not be found
+    """
+    response_exception = "preauthorization_not_found"
+
+
+class RefundNotFound(APIException):
+    """
+    Raised if the refund can not be found
+    """
+    response_exception = "refund_not_found"
+
+
+class WebhookNotFound(APIException):
+    """
+    Raised if the webhook can not be found
+    """
+    response_exception = "webhook_not_found"
