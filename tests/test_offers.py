@@ -1,5 +1,6 @@
 import pytest
 from mock import MockPymill
+from pymill.exception import OfferException
 
 def test_offer_requirements():
     """
@@ -26,9 +27,9 @@ def test_offer_amount():
     params = {'interval': "1 month", 'currency': 'EUR', 'name': "NAME"}
 
     pm = MockPymill('key')
-    with pytest.raises(ValueError):
+    with pytest.raises(OfferException):
         pm.new_offer(amount='X', **params)
-    with pytest.raises(ValueError):
+    with pytest.raises(OfferException):
         pm.new_offer(amount='10.1', **params)
 
     # FIXME: should raise an exception, too?
