@@ -1,6 +1,8 @@
 /pymill.egg-info/
 *.pyc
 docs/_build/
+dist/
+build/
 
 # Intellij
 .idea/
