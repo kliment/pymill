@@ -303,27 +303,44 @@ class Pymill(object):
         :Raises:
             APIException
         """
-        if not params: params = {}
-        request = {'GET': self.session.get, 'DELETE': self.session.delete, 'PUT': self.session.put, 'POST': self.session.post}[method]
-        if len(params) > 0 and not method in ('DELETE', 'PUT'):
-            request = self.session.post
-        response = request(url, params=params, headers=headers)
 
-        if parse_json:
-            if return_type is None:
-                return response.json()
-            else:
-                json_data = response.json()
-                if 'data' in json_data:
-                    if isinstance(json_data['data'], dict):
-                        return return_type(**json_data['data'])
-                    else:
-                        return [return_type(**x) for x in json_data['data']]
+        def __api_call(self, url, offset=0, params=None, method="GET", headers=None, parse_json=True, return_type=None):
+            if not params: params = {}
+            request = {'GET': self.session.get, 'DELETE': self.session.delete, 'PUT': self.session.put, 'POST': self.session.post}[method]
+            if len(params) > 0 and not method in ('DELETE', 'PUT'):
+                request = self.session.post
+            return request("{}?offset={}".format(url, offset), params=params, headers=headers)
+
+        browse_count = 0
+        browse_again = True
+        browse_data = []
+
+        while browse_again:
+            response = __api_call(self, url, offset=browse_count, params=params, method=method, headers=headers, parse_json=parse_json, return_type=return_type)
+
+            if parse_json:
+                if return_type is None:
+                    return response.json()
                 else:
-                    # raises a subclass of PymillException for proper exception handling
-                    raise get_api_exception(json_data)
-        else:
-            return response.text
+                    json_data = response.json()
+                    if 'data' in json_data:
+                        if 'data_count' in json_data:
+                            items_count = len(json_data['data'])
+                            browse_count += items_count
+                            browse_again = int(json_data['data_count']) > browse_count
+
+                        # if the answer is just a dict, we will ignore browse_again
+                        if isinstance(json_data['data'], dict):
+                            return return_type(**json_data['data'])
+
+                        browse_data += json_data['data']
+                        if not browse_again:
+                            return [return_type(**x) for x in browse_data]
+                    else:
+                        raise get_api_exception(json_data)
+            else:
+                return response.text
+
 
     def new_debit_card(self, code, account, holder, client=None):
         """Create a debit card from account data.
